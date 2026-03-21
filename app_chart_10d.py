@@ -7,6 +7,8 @@ import re
 from pathlib import Path
 import time as py_time
 
+from b01_stock_list import WATCH_A, WATCH_B, WATCH_C
+
 # --- パス定義 ---
 BASE_DIR = Path(__file__).parent
 TOPIX_FILE_PATH = BASE_DIR / "_topix_list.xlsx"
@@ -308,20 +310,41 @@ ALL_DISPLAY_COLS = ['騰落', 'GAP', '始値', '高値', '安値', '値幅']
 # 改善③ UIを先に描画してからデータロード
 #   → 入力欄がすぐ表示されるため「固まっている」感がなくなる
 # ================================================
-col_input, col_date, col_days, col_sort, col_select = st.columns([2, 0.5, 0.5, 0.5, 0.5])
-with col_input:
+col_title, col_stock,  col_code, col_days, col_sort, col_select = st.columns([2, 0.4, 0.4, 0.4, 0.4, 0.4])
+with col_title:
     st.markdown("## 📈 銘柄別チャート")
     data_source = st.radio("データソース", options=["yfinance", "ローカルCSV"], index=1,
                            key="data_source_radio", horizontal=True, label_visibility="collapsed")
     use_csv = (data_source == "ローカルCSV")
-with col_date:
-    raw_input   = st.text_area("1. 銘柄コード", value="5020", height=160, key="ticker_input")
-    ticker_list = [t.strip() for t in re.split(r'[,\s\n]+', raw_input) if t.strip()]
+with col_stock:
+    watch_a_label = f"ウォッチA（{len(WATCH_A)}）"
+    watch_b_label = f"ウォッチB（{len(WATCH_B)}）"
+    watch_c_label = f"ウォッチC（{len(WATCH_C)}）"
+    stock_mode = st.radio(
+        "銘柄選択",
+        options=["銘柄コードを指定", watch_a_label, watch_b_label, watch_c_label],
+        index=0,
+        key="stock_mode_radio"
+    )
+    is_manual = (stock_mode == "銘柄コードを指定")
+with col_code:
+    raw_input = st.text_area("1. 銘柄コード", value="5020", height=160, key="ticker_input",
+                             disabled=not is_manual)
+    if is_manual:
+        ticker_list = [t.strip() for t in re.split(r'[,\s\n]+', raw_input) if t.strip()]
+    elif stock_mode == watch_a_label:
+        ticker_list = [t.replace(".T", "") for t in WATCH_A]
+    elif stock_mode == watch_b_label:
+        ticker_list = [t.replace(".T", "") for t in WATCH_B]
+    elif stock_mode == watch_c_label:
+        ticker_list = [t.replace(".T", "") for t in WATCH_C]
+    else:
+        ticker_list = []
 with col_days:
     end_date    = st.date_input("2. 基準日", value=datetime.now())
     period_days = st.number_input("3. 遡る日数", min_value=1, max_value=20, value=10, step=1)
 with col_sort:
-    sort_order = st.radio("並べ替え", ["コードの入力順", "騰落率降順", "騰落率昇順"])
+    sort_order = st.radio("並べ替え", ["入力順", "騰落率降順", "騰落率昇順"])
     st.caption("※基準日の騰落率")
 with col_select:
     selected_cols = []
