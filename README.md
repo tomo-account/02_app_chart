@@ -77,6 +77,8 @@ streamlit run app_chart_10d.py
 
 ## イメージとバリエーション
 
+![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_settings.png)
+
 ### app_chart_10d.py
 
 
