@@ -75,6 +75,20 @@ streamlit run app_chart_10d.py
 
 <br><br>
 
+## イメージとバリエーション
+
+### app_chart_10d.py
+
+
+### app_chart_3d.py
+
+
+### app_chart_gain.py
+
+
+
+<br><br>
+
 ## データの取り扱いについて
 
 - 本アプリは個人利用および学習を目的としたツールであり、投資勧誘を目的としたものではありません。
