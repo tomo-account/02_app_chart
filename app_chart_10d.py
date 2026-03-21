@@ -109,13 +109,11 @@ def _preload_data():
 
 @st.cache_resource(show_spinner=False)
 def _preload_dicts():
-    def _load(path):
-        try:
-            if not path.exists(): return {}
-            df = pd.read_excel(path)
-            return dict(zip(df['コード'].astype(str), df['銘柄']))
-        except: return {}
-    return _load(EXCEL_FILE_PATH), _load(TOPIX_FILE_PATH)
+    try:
+        if not TOPIX_FILE_PATH.exists(): return {}
+        df = pd.read_excel(TOPIX_FILE_PATH)
+        return dict(zip(df['コード'].astype(str), df['銘柄']))
+    except: return {}
 
 
 # ================================================
@@ -338,7 +336,7 @@ with col_select:
 # データロードはUIが描画された後に実行
 with st.spinner("データを読み込んでいます..."):
     _preload_data()
-stock_dict, topix_dict = _preload_dicts()
+topix_dict = _preload_dicts()
 
 # ================================================
 # 改善④ ソート有無でループ戦略を切り替え
@@ -362,7 +360,7 @@ if need_sort:
 
             if not df_5m.empty:
                 chg, rsi, last_c = get_ticker_metrics(df_daily)
-                name = stock_dict.get(str(ticker), f"{ticker}.T")
+                name = topix_dict.get(str(ticker), f"{ticker}.T")
                 topix_name = topix_dict.get(str(ticker), name)
                 scored_tickers.append({
                     "ticker": ticker, "df": df_5m, "name": name,
@@ -394,7 +392,7 @@ else:
 
         if not df_5m.empty:
             chg, rsi, last_c = get_ticker_metrics(df_daily)
-            name = stock_dict.get(str(ticker), f"{ticker}.T")
+            name = topix_dict.get(str(ticker), f"{ticker}.T")
             topix_name = topix_dict.get(str(ticker), name)
             render_ticker_item({
                 "ticker": ticker, "df": df_5m, "name": name,
