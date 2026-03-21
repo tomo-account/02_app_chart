@@ -77,17 +77,29 @@ streamlit run app_chart_10d.py
 
 ## イメージとバリエーション
 
+<br>
+
+#### 設定UI
+
 ![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_settings.png)
 
-### app_chart_10d.py
+<br>
 
+#### app_chart_10d.py のチャート
 
-### app_chart_3d.py
+![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_chart_a.png)
 
+<br>
 
-### app_chart_gain.py
+#### app_chart_3d.py のチャート
 
+![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_chart_b.png)
 
+<br>
+
+#### app_chart_gain.py のチャート
+
+![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_chart_c.png)
 
 <br><br>
 
