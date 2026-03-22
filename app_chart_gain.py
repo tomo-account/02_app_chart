@@ -70,10 +70,9 @@ def _preload_data():
 
     # --- 5分足 ---
     if PARQUET_5MIN.exists():
-        available = pd.read_parquet(PARQUET_5MIN, engine="pyarrow", columns=["Datetime"]).columns.tolist()
-        # 全カラムを一度読んで存在確認してから必要列だけ取得
-        all_cols = pd.read_parquet(PARQUET_5MIN, engine="pyarrow").columns.tolist()
-        use_cols = [c for c in _5MIN_COLS if c in all_cols]
+        # pyarrow.parquet.read_schema でスキーマのみ取得（読み込みは1回）
+        import pyarrow.parquet as pq
+        use_cols = [c for c in _5MIN_COLS if c in pq.read_schema(PARQUET_5MIN).names]
         df5 = pd.read_parquet(PARQUET_5MIN, engine="pyarrow", columns=use_cols)
         df5["Datetime"] = pd.to_datetime(df5["Datetime"])
         if df5["Datetime"].dt.tz is None:
@@ -94,8 +93,8 @@ def _preload_data():
 
     # --- 日足 ---
     if PARQUET_DAILY.exists():
-        all_cols_d = pd.read_parquet(PARQUET_DAILY, engine="pyarrow").columns.tolist()
-        use_cols_d = [c for c in _DAILY_COLS if c in all_cols_d]
+        import pyarrow.parquet as pq
+        use_cols_d = [c for c in _DAILY_COLS if c in pq.read_schema(PARQUET_DAILY).names]
         dfd = pd.read_parquet(PARQUET_DAILY, engine="pyarrow", columns=use_cols_d)
         dfd["Date"] = pd.to_datetime(dfd["Date"]).dt.date
     elif CSV_DAILY.exists():
@@ -105,7 +104,11 @@ def _preload_data():
     else:
         dfd = pd.DataFrame()
 
-    return df5, dfd
+    # Ticker単位の辞書インデックス（銘柄フィルタをO(1)化）
+    df5_by_ticker = {t: grp.reset_index(drop=True) for t, grp in df5.groupby("Ticker")} if not df5.empty else {}
+    dfd_by_ticker = {t: grp.reset_index(drop=True) for t, grp in dfd.groupby("Ticker")} if not dfd.empty else {}
+
+    return df5_by_ticker, dfd_by_ticker
 
 
 @st.cache_resource(show_spinner=False)
@@ -125,26 +128,27 @@ def _preload_stock_dict():
 
 @st.cache_data(show_spinner=False, ttl=300)
 def get_single_stock_data_csv(code, end_dt, days_5m, daily_months):
-    raw_5m, raw_daily = _preload_data()
+    df5_by_ticker, dfd_by_ticker = _preload_data()
     ticker_symbol = f"{code}.T"
 
-    if raw_daily.empty:
+    # 辞書O(1)アクセス
+    if ticker_symbol not in dfd_by_ticker:
         return pd.DataFrame(), pd.DataFrame()
-    df_daily = raw_daily[raw_daily["Ticker"] == ticker_symbol].copy()
-    if df_daily.empty:
-        return pd.DataFrame(), pd.DataFrame()
+    df_daily = dfd_by_ticker[ticker_symbol].copy()
     daily_start = end_dt - timedelta(days=daily_months * 30 + 10)
     df_daily = df_daily[(df_daily["Date"] >= daily_start) & (df_daily["Date"] <= end_dt)]
+    if df_daily.empty:
+        return pd.DataFrame(), pd.DataFrame()
     df_daily = df_daily.set_index("Date").sort_index()
 
-    if raw_5m.empty:
+    if ticker_symbol not in df5_by_ticker:
         return pd.DataFrame(), df_daily
-    df_5m = raw_5m[raw_5m["Ticker"] == ticker_symbol]
+    df_5m = df5_by_ticker[ticker_symbol]
+    df_5m = df_5m[df_5m["_date"] <= end_dt]
     if df_5m.empty:
         return pd.DataFrame(), df_daily
-    df_5m = df_5m[df_5m["_date"] <= end_dt]
     unique_dates = sorted(df_5m["_date"].unique(), reverse=True)[:days_5m]
-    df_5m = df_5m[df_5m["_date"].isin(set(unique_dates))].sort_values("Datetime").copy()
+    df_5m = df_5m[df_5m["_date"].isin(set(unique_dates))].sort_values("Datetime").reset_index(drop=True)
 
     return df_5m, df_daily
 
@@ -194,16 +198,16 @@ def get_ticker_metrics(df_daily):
 Y_AXIS_WIDTH = 30
 
 def create_daily_line_chart(df_daily):
-    df_chart = df_daily.copy().reset_index().rename(columns={'index': 'Date'})[['Date', 'Close']]
+    df_chart = df_daily.reset_index()[['Date', 'Close']]
     return alt.Chart(df_chart).mark_line(color='#FF4B4B', strokeWidth=1.5).encode(
         x=alt.X('Date:T', title=None, axis=alt.Axis(labels=True, format='%m', grid=False)),
         y=alt.Y('Close:Q', title=None, scale=alt.Scale(zero=False), axis=alt.Axis(minExtent=Y_AXIS_WIDTH)),
     ).properties(height=180)
 
 def create_pct_change_chart(df_daily, y_domain):
-    df_chart = df_daily.copy().reset_index().rename(columns={'index': 'Date'})[['Date', 'Close']]
-    first_close = df_chart['Close'].iloc[0]
-    df_chart['PctChange'] = (df_chart['Close'] - first_close) / first_close * 100
+    df_chart = df_daily.reset_index()[['Date', 'Close']]
+    first_close = df_chart['Close'].iat[0]
+    df_chart = df_chart.assign(PctChange=(df_chart['Close'] - first_close) / first_close * 100)
     gradient_fill = alt.Gradient(
         gradient='linear',
         stops=[alt.GradientStop(color='white', offset=0), alt.GradientStop(color='#FF4B4B', offset=1)],
@@ -224,7 +228,11 @@ def create_candle_chart(df):
     df_c = df.copy().sort_values('Datetime')
     df_c['x_key'] = df_c['Datetime'].dt.strftime('%y/%m/%d %H:%M')
     df_c['date']  = df_c['_date'] if '_date' in df_c.columns else df_c['Datetime'].dt.date
-    df_c['is_am_line'] = (df_c['Datetime'] == df_c.groupby('date')['Datetime'].transform('min'))
+    # groupby.transform('min') の代わりに idxmin で高速化
+    day_min_idx = df_c.groupby('date')['Datetime'].idxmin()
+    am_mask = pd.Series(False, index=df_c.index)
+    am_mask.loc[day_min_idx.values] = True
+    df_c['is_am_line'] = am_mask
     df_c['is_pm_line'] = (df_c['Datetime'].dt.time == pm_start_time)
     tick_indices = df_c[df_c['is_am_line'] | df_c['is_pm_line']]['x_key'].unique().tolist()
     y_min, y_max = df_c['Close'].min(), df_c['Close'].max()
@@ -357,40 +365,43 @@ def render_row(row_items, cols, show_daily, show_pct, show_5m, cols_per_stock, c
             current_slot += 1
 
 
+def _fetch_all(ticker_list, use_csv, end_date, period_days, daily_months):
+    """全銘柄データを取得してリストで返す（キャッシュ済みのためI/Oなし）"""
+    results = []
+    for ticker in ticker_list:
+        if use_csv:
+            df_5m, df_daily = get_single_stock_data_csv(ticker, end_date, period_days, daily_months)
+        else:
+            py_time.sleep(0.2)
+            df_5m, df_daily = get_single_stock_data_yf(ticker, end_date, period_days, daily_months)
+        if not df_daily.empty:
+            chg, last_c = get_ticker_metrics(df_daily)
+            name = stock_dict.get(str(ticker)) or stock_dict.get(f"{ticker}.T") or str(ticker)
+            results.append({"ticker": ticker, "df": df_5m, "name": name,
+                            "df_daily": df_daily, "chg": chg, "close": last_c})
+    return results
+
+
 if show_pct:
-    # --- 騰落率チャートあり: Y軸共通化のため全銘柄まとめて取得 ---
-    scored_tickers = []
-    all_pct_values = []
+    # --- 騰落率チャートあり: パス1でY軸域を決定 → パス2で行単位即時描画 ---
     with st.spinner(f"{len(ticker_list)}銘柄のデータを取得中..."):
-        for ticker in ticker_list:
-            if use_csv:
-                df_5m, df_daily = get_single_stock_data_csv(ticker, end_date, period_days, daily_months)
-            else:
-                py_time.sleep(0.2)
-                df_5m, df_daily = get_single_stock_data_yf(ticker, end_date, period_days, daily_months)
+        scored_tickers = _fetch_all(ticker_list, use_csv, end_date, period_days, daily_months)
 
-            if not df_daily.empty:
-                chg, last_c = get_ticker_metrics(df_daily)
-                name = stock_dict.get(str(ticker)) or stock_dict.get(f"{ticker}.T") or str(ticker)
-                first_c = df_daily['Close'].iloc[0]
-                pct_series = (df_daily['Close'] - first_c) / first_c * 100
-                all_pct_values.extend(pct_series.tolist())
-                scored_tickers.append({
-                    "ticker": ticker, "df": df_5m, "name": name,
-                    "df_daily": df_daily, "chg": chg, "close": last_c
-                })
-
+    all_pct_values = []
+    for item in scored_tickers:
+        fc = item["df_daily"]['Close'].iloc[0]
+        all_pct_values.extend(((item["df_daily"]['Close'] - fc) / fc * 100).tolist())
     common_y_domain = [min(all_pct_values) - 2, max(all_pct_values) + 2] if all_pct_values else [-10, 10]
 
     for i in range(0, len(scored_tickers), stocks_per_row):
         cols = st.columns(6)
-        row_items = scored_tickers[i:i + stocks_per_row]
-        render_row(row_items, cols, show_daily, show_pct, show_5m, cols_per_stock, common_y_domain)
+        render_row(scored_tickers[i:i + stocks_per_row], cols,
+                   show_daily, show_pct, show_5m, cols_per_stock, common_y_domain)
         st.markdown("")
 
 else:
-    # --- 騰落率チャートなし: 1銘柄ずつ即時描画 ---
-    common_y_domain = [-10, 10]  # show_pct=Falseなので使わない
+    # --- 騰落率チャートなし: 1銘柄取得ごとに即時描画 ---
+    common_y_domain = [-10, 10]
     row_buffer = []
 
     for ticker in ticker_list:
@@ -403,19 +414,15 @@ else:
         if not df_daily.empty:
             chg, last_c = get_ticker_metrics(df_daily)
             name = stock_dict.get(str(ticker)) or stock_dict.get(f"{ticker}.T") or str(ticker)
-            row_buffer.append({
-                "ticker": ticker, "df": df_5m, "name": name,
-                "df_daily": df_daily, "chg": chg, "close": last_c
-            })
+            row_buffer.append({"ticker": ticker, "df": df_5m, "name": name,
+                               "df_daily": df_daily, "chg": chg, "close": last_c})
 
-        # stocks_per_row 分たまったら即時描画
         if len(row_buffer) == stocks_per_row:
             cols = st.columns(6)
             render_row(row_buffer, cols, show_daily, show_pct, show_5m, cols_per_stock, common_y_domain)
             st.markdown("")
             row_buffer = []
 
-    # 端数を描画
     if row_buffer:
         cols = st.columns(6)
         render_row(row_buffer, cols, show_daily, show_pct, show_5m, cols_per_stock, common_y_domain)
