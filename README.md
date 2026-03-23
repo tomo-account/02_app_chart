@@ -43,7 +43,7 @@
 
 | ファイル | 内容 | 取得方法 |
 |:---|:---|:---|
-| `_5min.csv` | 5分足データ | [yfinance_data_loader](リンク) の `02_yfinance_init.py` で生成 |
+| `_5min.csv` | 5分足データ | [yfinance_data_loader](https://github.com/tomo-account/00_data_loader/tree/main) を参考 |
 | `_daily.csv` | 日足データ | 同上 |
 | `_topix_list.xlsx` | 東証上場銘柄一覧 | [JPXサイト](https://www.jpx.co.jp/markets/statistics-equities/misc/01.html)からダウンロード |
 
@@ -62,7 +62,7 @@ pip install streamlit==1.52.2 pandas==2.3.3 altair==6.0.0 yfinance==1.0 openpyxl
 ## 実行方法
 
 ```bash
-streamlit run app_chart_10d.py
+streamlit run app_chart_1c.py
 ```
 
 ブラウザが自動で開き、`http://localhost:8501` でアプリが起動します。
