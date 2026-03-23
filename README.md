@@ -6,22 +6,38 @@
 
 ## 画面イメージ
 
-- 5分足ローソク足チャート（出来高付き）
-- 日足ラインチャートで中期トレンドを確認
-- RSIによる相場の過熱感の表示
+<br>
+
+#### 設定UI
+
+![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_settings.png)
+
+<br>
+
+#### 📈 app_chart_1c.py のチャート
+
+**機能**
+- 5分足ローソク足チャートを20日分まで表示
 - 日別サマリーテーブル（始値・高値・安値・終値・値幅・GAP・騰落率）
 - データソースをyfinanceとローカルCSVで切り替え可能
-- 騰落率によるソート機能
+
+![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_chart_a.png)
+
+<br>
+
+#### app_chart_2c.py のチャート
+
+![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_chart_b.png)
+
+<br>
+
+#### app_chart_6c.py のチャート
+
+![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_chart_c.png)
 
 <br><br>
 
-## ファイル構成
-
-| ファイル | 内容 |
-|:---|:---|
-| `app_chart_10d.py` | 銘柄別チャートアプリ本体 |
-
-### 必要なデータファイル（別リポジトリで取得）
+## 必要なデータファイル（別リポジトリで取得）
 
 本アプリはローカルCSVをメインのデータソースとして使用します。
 以下のファイルをアプリと同じフォルダに配置してください。
@@ -54,52 +70,11 @@ streamlit run app_chart_10d.py
 
 <br><br>
 
-## 使い方
-
-| 入力項目 | 説明 |
-|:---|:---|
-| 銘柄コード | 銘柄コードを入力（複数可・改行またはカンマ区切り） |
-| データソース | yfinance（都度取得）またはローカルCSVを選択 |
-| 基準日 | チャートの基準とする日付 |
-| 遡る日数 | 基準日から何営業日分を表示するか（最大20日） |
-| 並べ替え | 入力順・騰落率降順・騰落率昇順から選択 |
-| 表示項目 | 日別サマリーテーブルに表示する列を選択 |
-
-<br><br>
-
 ## パフォーマンスについて
 
 - 初回起動時にCSVをParquet形式に変換します（2回目以降は高速化されます）
 - 「コードの入力順」モードでは1銘柄取得するたびに即時描画するため、体感速度が向上します
 - 「騰落率順」モードでは全銘柄取得後にソートして一括描画します
-
-<br><br>
-
-## イメージとバリエーション
-
-<br>
-
-#### 設定UI
-
-![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_settings.png)
-
-<br>
-
-#### app_chart_10d.py のチャート
-
-![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_chart_a.png)
-
-<br>
-
-#### app_chart_3d.py のチャート
-
-![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_chart_b.png)
-
-<br>
-
-#### app_chart_gain.py のチャート
-
-![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_chart_c.png)
 
 <br><br>
 
