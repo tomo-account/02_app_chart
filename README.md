@@ -8,15 +8,14 @@
 
 <br>
 
-#### 設定UI
+### 設定UI
 
 ![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_settings.png)
 
 <br>
 
-#### 📈 app_chart_1c.py のチャート
+### 📈 app_chart_1c.py のチャート
 
-**機能**
 - 5分足ローソク足チャートを20日分まで表示
 - 日別サマリーテーブル（始値・高値・安値・終値・値幅・GAP・騰落率）
 - データソースをyfinanceとローカルCSVで切り替え可能
@@ -25,13 +24,13 @@
 
 <br>
 
-#### app_chart_2c.py のチャート
+### app_chart_2c.py のチャート
 
 ![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_chart_b.png)
 
 <br>
 
-#### app_chart_6c.py のチャート
+### app_chart_6c.py のチャート
 
 ![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_chart_c.png)
 
