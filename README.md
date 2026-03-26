@@ -10,7 +10,7 @@
 
 ### 設定UI
 
-![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_settings.png)
+![](https://raw.githubusercontent.com/tomo-account/01_app_chart/refs/heads/main/image_settings.png)
 
 <br>
 
@@ -20,19 +20,19 @@
 - 日別サマリーテーブル（始値・高値・安値・終値・値幅・GAP・騰落率）
 - データソースをyfinanceとローカルCSVで切り替え可能
 
-![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_chart_a.png)
+![](https://raw.githubusercontent.com/tomo-account/01_app_chart/refs/heads/main/image_chart_a.png)
 
 <br>
 
 ### app_chart_2c.py のチャート
 
-![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_chart_b.png)
+![](https://raw.githubusercontent.com/tomo-account/01_app_chart/refs/heads/main/image_chart_b.png)
 
 <br>
 
 ### app_chart_6c.py のチャート
 
-![](https://raw.githubusercontent.com/minnanopython/01_app_chart/refs/heads/main/image_chart_c.png)
+![](https://raw.githubusercontent.com/tomo-account/01_app_chart/refs/heads/main/image_chart_c.png)
 
 <br><br>
 
@@ -100,7 +100,7 @@ streamlit run app_chart_1c.py
 
 ## 関連リポジトリ・記事
 
-- [Qiita：yfinanceとStreamlitで株価分析アプリを作ってみよう（準備編）](https://qiita.com/minnano-python/items/946761b0855ed75c381a)
+- [Qiita：yfinanceとStreamlitで株価分析アプリを作ってみよう（準備編）](https://qiita.com/tomo-account/items/946761b0855ed75c381a)
 
 <br><br>
 
