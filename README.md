@@ -1,6 +1,7 @@
 # 銘柄別チャートアプリ
 
 こちらのリポジトリで紹介したアプリのバリエーションです。
+
 https://github.com/tomo-account/00_sample_app/tree/main
 
 <br><br>
