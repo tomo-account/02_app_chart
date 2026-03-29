@@ -1,6 +1,24 @@
 # 銘柄別チャートアプリ
 
-銘柄コードを入力すると、5分足ローソク足チャートと株価サマリーを表示するStreamlitアプリです。
+こちらのリポジトリで紹介したアプリのバリエーションです。
+https://github.com/tomo-account/00_sample_app/tree/main
+
+<br><br>
+
+## 必要なライブラリのインストール
+
+```bash
+pip install streamlit==1.52.2 pandas==2.3.3 altair==6.0.0 yfinance==1.0 openpyxl==3.1.5 pyarrow==22.0.0
+```
+
+<br><br>
+
+## パフォーマンスについて
+
+- 初回起動時にCSVをParquet形式に変換します（2回目以降は高速化されます）
+- 「コードの入力順」モードでは1銘柄取得するたびに即時描画するため、体感速度が向上します
+- 「騰落率順」モードでは全銘柄取得後にソートして一括描画します
+
 
 <br><br>
 
@@ -14,25 +32,32 @@
 
 <br>
 
-### 📈 app_chart_1c.py のチャート
+### 📈 app_chart_1col.py のチャート
 
 - 5分足ローソク足チャートを20日分まで表示
 - 日別サマリーテーブル（始値・高値・安値・終値・値幅・GAP・騰落率）
 - データソースをyfinanceとローカルCSVで切り替え可能
 
-![](https://raw.githubusercontent.com/tomo-account/01_app_chart/refs/heads/main/image_chart_a.png)
+![](https://raw.githubusercontent.com/tomo-account/01_app_chart/refs/heads/main/img_chart_1col.png)
 
 <br>
 
-### app_chart_2c.py のチャート
+### app_chart_6col.py のチャート
 
-![](https://raw.githubusercontent.com/tomo-account/01_app_chart/refs/heads/main/image_chart_b.png)
+![](https://raw.githubusercontent.com/tomo-account/01_app_chart/refs/heads/main/img_chart_6col.pngg)
 
 <br>
 
-### app_chart_6c.py のチャート
+### app_chart_5min_6col.py のチャート
 
-![](https://raw.githubusercontent.com/tomo-account/01_app_chart/refs/heads/main/image_chart_c.png)
+![](https://raw.githubusercontent.com/tomo-account/01_app_chart/refs/heads/main/img_chart_5min_6col.png)
+
+<br>
+
+### app_chart_5min_3col.py のチャート
+
+![](https://raw.githubusercontent.com/tomo-account/01_app_chart/refs/heads/main/img_chart_5min_3col.png)
+
 
 <br><br>
 
@@ -48,32 +73,6 @@
 | `_topix_list.xlsx` | 東証上場銘柄一覧 | [JPXサイト](https://www.jpx.co.jp/markets/statistics-equities/misc/01.html)からダウンロード |
 
 > yfinanceモードを使う場合、上記CSVファイルがなくても動作します。
-
-<br><br>
-
-## 必要なライブラリのインストール
-
-```bash
-pip install streamlit==1.52.2 pandas==2.3.3 altair==6.0.0 yfinance==1.0 openpyxl==3.1.5 pyarrow==22.0.0
-```
-
-<br><br>
-
-## 実行方法
-
-```bash
-streamlit run app_chart_1c.py
-```
-
-ブラウザが自動で開き、`http://localhost:8501` でアプリが起動します。
-
-<br><br>
-
-## パフォーマンスについて
-
-- 初回起動時にCSVをParquet形式に変換します（2回目以降は高速化されます）
-- 「コードの入力順」モードでは1銘柄取得するたびに即時描画するため、体感速度が向上します
-- 「騰落率順」モードでは全銘柄取得後にソートして一括描画します
 
 <br><br>
 
