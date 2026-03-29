@@ -44,7 +44,7 @@ pip install streamlit==1.52.2 pandas==2.3.3 altair==6.0.0 yfinance==1.0 openpyxl
 
 ### 📈 app_chart_6col.py のチャート
 
-![](https://raw.githubusercontent.com/tomo-account/01_app_chart/refs/heads/main/img_chart_6col.pngg)
+![](https://raw.githubusercontent.com/tomo-account/01_app_chart/refs/heads/main/img_chart_6col.png)
 
 <br>
 
